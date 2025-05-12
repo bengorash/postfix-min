@@ -1,0 +1,40 @@
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install Postfix and rsyslog
+RUN apt-get update && \
+    apt-get install -y postfix rsyslog && \
+    apt-get clean
+
+# Configure Postfix
+RUN echo "postfix postfix/main_mailer_type string 'Internet Site'" | debconf-set-selections && \
+    echo "postfix postfix/mailname string yourdomain.com" | debconf-set-selections
+
+# Create mail directories
+RUN mkdir -p /var/mail /var/log && \
+    touch /var/log/mail.log && \
+    chmod 644 /var/log/mail.log && \
+    chown -R postfix:postfix /var/mail && \
+    chmod -R 750 /var/mail
+
+# Copy configuration files
+COPY main.cf /etc/postfix/main.cf
+COPY master.cf /etc/postfix/master.cf
+
+# Configure rsyslog
+RUN echo 'module(load="imuxsock")' > /etc/rsyslog.conf && \
+    echo 'module(load="imudp")' >> /etc/rsyslog.conf && \
+    echo 'input(type="imudp" port="514")' >> /etc/rsyslog.conf && \
+    echo '*.* /var/log/mail.log' >> /etc/rsyslog.conf && \
+    echo 'mail.* /var/log/mail.log' >> /etc/rsyslog.conf
+
+# Create startup script
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+# Expose port 2525
+EXPOSE 2525
+
+# Start services
+CMD ["/start.sh"]

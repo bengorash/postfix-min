@@ -1,0 +1,16 @@
+# Basic settings
+myhostname = mail.yourdomain.com
+mydomain = yourdomain.com
+myorigin = $mydomain
+mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain
+inet_interfaces = all
+smtp_bind_address = 0.0.0.0:2525
+
+# Accept emails from any source
+mynetworks = 0.0.0.0/0
+
+# Store emails in /var/mail
+home_mailbox = Maildir/
+
+# Logging
+syslog_facility = mail
